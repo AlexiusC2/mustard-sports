@@ -9,6 +9,7 @@ class Product(models.Model):
         ('joggers', 'Joggers'),
         ('kaus kaki', 'Kaus Kaki'),
         ('bola', 'Bola'),
+        ('lainnya', 'Lainnya'),
     ]
     
     name = models.CharField
