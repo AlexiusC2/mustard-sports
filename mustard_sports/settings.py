@@ -32,6 +32,10 @@ DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "alexius-christhoper-mustardsports.pbp.cs.ui.ac.id"]
 
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://alexius-christhoper-mustardsports.pbp.cs.ui.ac.id"
+]
+
 
 # Application definition
 
@@ -69,6 +73,9 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
             ],
         },
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': [BASE_DIR / 'templates'], # Tambahkan konten baris ini
+        'APP_DIRS': True,
     },
 ]
 

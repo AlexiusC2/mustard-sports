@@ -12,7 +12,7 @@ class Product(models.Model):
         ('lainnya', 'Lainnya'),
     ]
     
-    name = models.CharField
+    name = models.CharField()
     price = models.PositiveIntegerField(default=0)
     description = models.TextField()
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='update')
