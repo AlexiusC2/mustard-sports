@@ -14,11 +14,25 @@ from django.urls import reverse
 @login_required(login_url='/login')
 def show_main(request):
     filter_type = request.GET.get("filter", "all")  # default 'all'
+    category_filter = request.GET.get("category", "")  # category filter
 
+    # Start with base query
     if filter_type == "all":
         product_list = Product.objects.all()
     else:
         product_list = Product.objects.filter(user=request.user)
+    
+    # Apply category filter if specified
+    if category_filter:
+        product_list = product_list.filter(category=category_filter)
+    
+    # Prepare context with filter information
+    filter_message = ""
+    if category_filter:
+        category_display = dict(Product.CATEGORY_CHOICES).get(category_filter, category_filter)
+        filter_message = f"Showing products in category: {category_display}"
+        if filter_type == "my":
+            filter_message = f"Showing your products in category: {category_display}"
 
     context = {
         'name': request.user.username,
@@ -26,6 +40,9 @@ def show_main(request):
         'product_list': product_list,
         'nama_aplikasi': 'Mustard Sports',
         'last_login': request.COOKIES.get('last_login', 'Never'),
+        'category_filter': category_filter,
+        'filter_message': filter_message,
+        'filter_type': filter_type,
     }
 
     return render(request, "main.html", context)
@@ -111,3 +128,21 @@ def logout_user(request):
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return response
+
+def edit_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    form = ProductForm(request.POST or None, instance=product)
+    if form.is_valid() and request.method == 'POST':
+        form.save()
+        return redirect('main:show_main')
+
+    context = {
+        'form': form
+    }
+
+    return render(request, "edit_product.html", context)
+
+def delete_product(request, id):
+    product = get_object_or_404(Product, pk=id)
+    product.delete()
+    return HttpResponseRedirect(reverse('main:show_main'))
