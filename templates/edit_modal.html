@@ -1,0 +1,166 @@
+<!-- Edit Product Modal -->
+<div id="editModal" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50">
+  <div id="editModalContent" class="bg-white rounded-lg shadow-lg w-5/6 sm:w-3/5 md:w-1/2 lg:w-2/5 xl:w-1/3 max-h-screen overflow-y-auto opacity-0 scale-95 transform transition-all duration-300 ease-out">
+    <!-- Modal header -->
+    <div class="flex items-center justify-between p-4 border-b">
+      <div>
+        <h3 class="text-xl font-semibold text-gray-900">
+          Edit Product
+        </h3>
+        <p class="text-sm text-gray-600 mt-1">Update your product information</p>
+      </div>
+      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" onclick="hideEditModal()">
+        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    <!-- Modal body -->
+    <div class="px-6 py-4 space-y-6 form-style">
+      <form id="editProductForm">
+        <input type="hidden" id="editProductId" name="productId">
+        <div class="mb-4">
+          <label for="editName" class="block text-sm font-medium text-gray-700">Product Name</label>
+          <input type="text" id="editName" name="name" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Enter product name" required>
+        </div>
+        <div class="mb-4">
+          <label for="editPrice" class="block text-sm font-medium text-gray-700">Price (Rp)</label>
+          <input type="number" id="editPrice" name="price" min="0" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Enter price" required>
+        </div>
+        <div class="mb-4">
+          <label for="editDescription" class="block text-sm font-medium text-gray-700">Description</label>
+          <textarea id="editDescription" name="description" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="Enter product description" required></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="editCategory" class="block text-sm font-medium text-gray-700">Category</label>
+          <select id="editCategory" name="category" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" required>
+            <option value="">Choose a category</option>
+            <option value="jersey">Jersey</option>
+            <option value="sepatu">Sepatu</option>
+            <option value="celana">Celana</option>
+            <option value="joggers">Joggers</option>
+            <option value="kaus kaki">Kaus Kaki</option>
+            <option value="bola">Bola</option>
+            <option value="lainnya">Lainnya</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="editThumbnail" class="block text-sm font-medium text-gray-700">Thumbnail URL</label>
+          <input type="url" id="editThumbnail" name="thumbnail" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" placeholder="https://example.com/image.jpg">
+        </div>
+        <div class="mb-4">
+          <div class="flex items-center">
+            <input id="editIsFeatured" name="is_featured" type="checkbox" class="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500">
+            <label for="editIsFeatured" class="ml-2 text-sm font-medium text-gray-900">Featured Product</label>
+          </div>
+        </div>
+      </form>
+    </div>
+    <!-- Modal footer -->
+    <div class="flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 rounded-b">
+      <button type="button" id="cancelEditButton" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center" onclick="hideEditModal()">Cancel</button>
+      <button type="submit" id="submitEditProduct" form="editProductForm" class="order-1 sm:order-2 flex-1 bg-green-600 text-white px-6 py-3 rounded-md font-medium hover:bg-green-700 transition-colors">Update Product</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentEditProductId = null;
+
+  function showEditModal(productId) {
+      // Store the product ID
+      currentEditProductId = productId;
+      
+      // Fetch product data and populate the form
+      fetch(`{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', productId))
+          .then(response => response.json())
+          .then(product => {
+              // Populate form fields
+              document.getElementById('editProductId').value = productId;
+              document.getElementById('editName').value = DOMPurify.sanitize(product.name);
+              document.getElementById('editPrice').value = DOMPurify.sanitize(product.price);
+              document.getElementById('editDescription').value = DOMPurify.sanitize(product.description);
+              document.getElementById('editCategory').value = DOMPurify.sanitize(product.category);
+              document.getElementById('editThumbnail').value = DOMPurify.sanitize(product.thumbnail || '');
+              document.getElementById('editIsFeatured').checked = product.is_featured;
+
+              // Show modal
+              const modal = document.getElementById('editModal');
+              const modalContent = document.getElementById('editModalContent');
+
+              modal.classList.remove('hidden');
+              setTimeout(() => {
+                modalContent.classList.remove('opacity-0', 'scale-95');
+                modalContent.classList.add('opacity-100', 'scale-100');
+              }, 50);
+          })
+          .catch(error => {
+              console.error('Error fetching product data:', error);
+              showToast('Error loading product data', '', 'error');
+          });
+  }
+
+  function hideEditModal() {
+      const modal = document.getElementById('editModal');
+      const modalContent = document.getElementById('editModalContent');
+
+      modalContent.classList.remove('opacity-100', 'scale-100');
+      modalContent.classList.add('opacity-0', 'scale-95');
+
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        resetEditForm();
+      }, 150);
+  }
+
+  function resetEditForm() {
+      document.getElementById('editProductForm').reset();
+      currentEditProductId = null;
+  }
+
+  // Click outside to close modal
+  document.getElementById('editModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+          hideEditModal();
+      }
+  });
+
+  async function editProductEntry() {
+    if (!currentEditProductId) {
+        showToast('Error!', 'No product selected', 'error');
+        return false;
+    }
+
+    try {
+      const editUrl = `{% url 'main:edit_product_entry_ajax' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', currentEditProductId);
+      
+      const response = await fetch(editUrl, {
+        method: "POST",
+        body: new FormData(document.querySelector('#editProductForm')),
+      })
+
+      if (response.ok) {
+        document.getElementById("editProductForm").reset();
+        hideEditModal();
+        
+        showToast('Success!', 'Product updated successfully!', 'success');
+        document.dispatchEvent(new CustomEvent('productEdited'));
+      } else if (response.status === 404) {
+        showToast('Error!', 'Product not found or you do not have permission to edit it.', 'error');
+      } else {
+        showToast('Error!', 'Failed to update product. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Error updating product:', error);
+      showToast('Error!', 'Network error. Please check your connection and try again.', 'error');
+    }
+
+    return false;
+  }
+
+  document.getElementById("editProductForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      editProductEntry();
+  })
+</script>

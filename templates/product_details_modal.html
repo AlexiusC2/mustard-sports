@@ -1,0 +1,270 @@
+<!-- Product Details Modal -->
+<div id="detailsModal" class="hidden fixed inset-0 z-50 w-full flex items-center justify-center bg-gray-800 bg-opacity-50">
+  <div id="detailsModalContent" class="bg-white rounded-lg shadow-lg w-11/12 md:w-4/5 lg:w-3/4 xl:w-2/3 max-h-screen overflow-y-auto opacity-0 scale-95 transform transition-all duration-300 ease-out">
+    <!-- Modal header -->
+    <div class="flex items-center justify-between p-4 border-b">
+      <div class="flex-1">
+        <h3 id="detailsModalTitle" class="text-xl font-semibold text-gray-900">
+          Product Details
+        </h3>
+        <div id="detailsBadgesContainer" class="flex flex-wrap items-center gap-2 mt-2">
+          <!-- Dynamic badges will be inserted here -->
+        </div>
+      </div>
+      <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center" onclick="hideDetailsModal()">
+        <svg aria-hidden="true" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+        </svg>
+        <span class="sr-only">Close modal</span>
+      </button>
+    </div>
+    
+    <!-- Modal body -->
+    <div class="p-6">
+      <!-- Loading State -->
+      <div id="detailsLoading" class="text-center py-12">
+        <svg class="animate-spin h-8 w-8 text-green-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <p class="text-gray-600 mt-3">Loading product details...</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="detailsError" class="hidden text-center py-12">
+        <div class="text-red-500 text-5xl mb-4">⚠️</div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load product</h3>
+        <p class="text-gray-500 mb-4">Please try again later.</p>
+        <button onclick="retryLoadProductDetails()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+          Retry
+        </button>
+      </div>
+
+      <!-- Product Content -->
+      <div id="detailsContent" class="hidden">
+        <!-- Product Image -->
+        <div id="detailsImageContainer" class="mb-6 hidden">
+          <img id="detailsImage" 
+               src="" 
+               alt="" 
+               class="w-full h-auto max-h-96 object-contain rounded-lg border border-gray-200">
+        </div>
+
+        <!-- Product Info -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left Column -->
+          <div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+              <p id="detailsName" class="text-lg font-semibold text-gray-900"></p>
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Price</label>
+              <p id="detailsPrice" class="text-2xl font-bold text-green-600"></p>
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <p id="detailsCategory" class="text-gray-900"></p>
+            </div>
+            
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Added by</label>
+              <p id="detailsOwner" class="text-gray-900"></p>
+            </div>
+          </div>
+          
+          <!-- Right Column -->
+          <div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <div id="detailsDescription" class="text-gray-700 leading-relaxed whitespace-pre-line bg-gray-50 p-4 rounded-lg min-h-32"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal footer -->
+    <div id="detailsFooter" class="hidden flex flex-col sm:flex-row gap-4 p-6 border-t border-gray-200 rounded-b">
+      <button type="button" class="order-2 sm:order-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-md font-medium hover:bg-gray-50 transition-colors text-center" onclick="hideDetailsModal()">
+        Close
+      </button>
+      <div id="detailsActionButtons" class="order-1 sm:order-2 flex gap-2">
+        <!-- Dynamic action buttons will be inserted here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentDetailsProductId = null;
+
+  // Category display names mapping
+  const detailsCategoryDisplayNames = {
+    'jersey': 'Jersey',
+    'sepatu': 'Sepatu',
+    'celana': 'Celana',
+    'joggers': 'Joggers',
+    'kaus kaki': 'Kaus Kaki',
+    'bola': 'Bola',
+    'lainnya': 'Lainnya'
+  };
+
+  function showDetailsModal(productId) {
+    currentDetailsProductId = productId;
+    
+    // Reset modal content
+    resetDetailsModal();
+    
+    // Show modal
+    const modal = document.getElementById('detailsModal');
+    const modalContent = document.getElementById('detailsModalContent');
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+      modalContent.classList.remove('opacity-0', 'scale-95');
+      modalContent.classList.add('opacity-100', 'scale-100');
+    }, 50);
+
+    // Load product details
+    loadProductDetails(productId);
+  }
+
+  function hideDetailsModal() {
+    const modal = document.getElementById('detailsModal');
+    const modalContent = document.getElementById('detailsModalContent');
+
+    modalContent.classList.remove('opacity-100', 'scale-100');
+    modalContent.classList.add('opacity-0', 'scale-95');
+
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      resetDetailsModal();
+    }, 150);
+  }
+
+  function resetDetailsModal() {
+    document.getElementById('detailsLoading').classList.remove('hidden');
+    document.getElementById('detailsError').classList.add('hidden');
+    document.getElementById('detailsContent').classList.add('hidden');
+    document.getElementById('detailsFooter').classList.add('hidden');
+    currentDetailsProductId = null;
+  }
+
+  function formatDetailsPrice(price) {
+    return new Intl.NumberFormat('id-ID').format(price);
+  }
+
+  function getCategoryDisplayName(categoryCode) {
+    return detailsCategoryDisplayNames[categoryCode] || categoryCode;
+  }
+
+  async function loadProductDetails(productId) {
+    try {
+      const response = await fetch(`{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', productId));
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch product details');
+      }
+
+      const product = await response.json();
+      renderProductDetails(product);
+    } catch (error) {
+      console.error('Error loading product details:', error);
+      showDetailsError();
+    }
+  }
+
+  function renderProductDetails(product) {
+    // Hide loading, show content
+    document.getElementById('detailsLoading').classList.add('hidden');
+    document.getElementById('detailsContent').classList.remove('hidden');
+    document.getElementById('detailsFooter').classList.remove('hidden');
+
+    // Set title and badges
+    document.getElementById('detailsModalTitle').textContent = DOMPurify.sanitize(product.name);
+    
+    // Clear and populate badges
+    const badgesContainer = document.getElementById('detailsBadgesContainer');
+    badgesContainer.innerHTML = '';
+    
+    // Category badge
+    const categoryBadge = document.createElement('span');
+    categoryBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-600 text-white';
+    categoryBadge.textContent = getCategoryDisplayName(product.category);
+    badgesContainer.appendChild(categoryBadge);
+    
+    // Featured badge
+    if (product.is_featured) {
+      const featuredBadge = document.createElement('span');
+      featuredBadge.className = 'inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800';
+      featuredBadge.textContent = 'Featured';
+      badgesContainer.appendChild(featuredBadge);
+    }
+
+    // Set product information
+    document.getElementById('detailsName').textContent = DOMPurify.sanitize(product.name);
+    document.getElementById('detailsPrice').textContent = `Rp ${formatDetailsPrice(product.price)}`;
+    document.getElementById('detailsCategory').textContent = getCategoryDisplayName(product.category);
+    document.getElementById('detailsDescription').textContent = DOMPurify.sanitize(product.description || 'No description available.');
+    document.getElementById('detailsOwner').textContent = DOMPurify.sanitize(product.user_username || 'Anonymous');
+
+    // Set product image
+    const imageContainer = document.getElementById('detailsImageContainer');
+    const image = document.getElementById('detailsImage');
+    if (product.thumbnail) {
+      image.src = DOMPurify.sanitize(product.thumbnail);
+      image.alt = DOMPurify.sanitize(product.name);
+      imageContainer.classList.remove('hidden');
+    } else {
+      imageContainer.classList.add('hidden');
+    }
+
+    // Set action buttons for owner
+    const actionButtons = document.getElementById('detailsActionButtons');
+    const currentUserId = typeof CURRENT_USER_ID !== 'undefined' ? CURRENT_USER_ID : null;
+    
+    if (currentUserId && Number(currentUserId) === Number(product.user_id)) {
+      actionButtons.innerHTML = `
+        <button onclick="hideDetailsModal(); showEditModal('${product.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors">
+          Edit Product
+        </button>
+        <button onclick="confirmDeleteProduct('${product.id}', '${DOMPurify.sanitize(product.name).replace(/'/g, "\\'")}')" class="bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition-colors">
+          Delete Product
+        </button>
+      `;
+    } else {
+      actionButtons.innerHTML = '';
+    }
+  }
+
+  function showDetailsError() {
+    document.getElementById('detailsLoading').classList.add('hidden');
+    document.getElementById('detailsError').classList.remove('hidden');
+  }
+
+  function retryLoadProductDetails() {
+    if (currentDetailsProductId) {
+      document.getElementById('detailsError').classList.add('hidden');
+      document.getElementById('detailsLoading').classList.remove('hidden');
+      loadProductDetails(currentDetailsProductId);
+    }
+  }
+
+  function confirmDeleteProduct(productId, productName) {
+    if (confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+      // Close modal and redirect to delete
+      hideDetailsModal();
+      window.location.href = `{% url 'main:delete_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', productId);
+    }
+  }
+
+  // Click outside to close modal
+  document.getElementById('detailsModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+      hideDetailsModal();
+    }
+  });
+</script>
