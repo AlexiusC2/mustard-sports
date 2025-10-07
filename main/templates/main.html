@@ -14,7 +14,7 @@
     <!-- Header Section -->
     <div class="mb-8">
       <h1 class="text-3xl font-bold text-white mb-2">{{ nama_aplikasi }}</h1>
-      <p class="text-gray-300">Discover the best sports equipment and gear</p>
+      <p class="text-black-300">Discover the best sports equipment and gear</p>
       <div class="mt-4 text-sm text-gray-400">
         <p>Welcome, {{ name }} | Class: {{ class }}</p>
       </div>
@@ -109,11 +109,9 @@
     <div id="product-grid" class="hidden"></div>
 
     <!-- Empty State -->
-    <div id="empty" class="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center hidden">
-      <div class="w-24 h-24 mx-auto mb-6 bg-gray-100 rounded-full flex items-center justify-center">
-        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 5l7 7-7 7"/>
-        </svg>
+    <div id="empty" class="rounded-lg border border-gray-200 p-12 text-center hidden" style="background: rgb(185, 212, 170);">
+      <div class="w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+        <img src="{% static 'image/no-products.jpg' %}" alt="No products" class="w-full h-full object-contain rounded-lg">
       </div>
       <h3 class="text-lg font-semibold text-gray-800 mb-2" id="empty-title">No products found</h3>
       <p class="text-gray-600 mb-6" id="empty-message">Be the first to add sports products to {{ nama_aplikasi }}.</p>
