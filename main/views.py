@@ -202,6 +202,11 @@ def delete_product(request, id):
 @require_POST
 def add_product_entry_ajax(request):
     try:
+        # Debug logging
+        print(f"Request method: {request.method}")
+        print(f"Request POST data: {request.POST}")
+        print(f"User authenticated: {request.user.is_authenticated}")
+        
         name = strip_tags(request.POST.get("name"))  # strip HTML tags!
         price = request.POST.get("price")
         description = strip_tags(request.POST.get("description"))  # strip HTML tags!
@@ -209,6 +214,13 @@ def add_product_entry_ajax(request):
         thumbnail = strip_tags(request.POST.get("thumbnail"))  # strip HTML tags!
         is_featured = request.POST.get("is_featured") == 'on'  # checkbox handling
         user = request.user
+
+        # Validate user is authenticated
+        if not user.is_authenticated:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'User must be logged in to add products.'
+            }, status=401)
 
         # Validate required fields
         if not name or not price or not description:
