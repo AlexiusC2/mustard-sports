@@ -202,59 +202,52 @@ def delete_product(request, id):
 @require_POST
 def add_product_entry_ajax(request):
     try:
-        # Validate and clean input data
-        name = strip_tags(request.POST.get("name", "")).strip()
-        price_str = request.POST.get("price", "")
-        description = strip_tags(request.POST.get("description", "")).strip()
-        category = request.POST.get("category", "")
-        thumbnail = strip_tags(request.POST.get("thumbnail", "")).strip()
-        is_featured = request.POST.get("is_featured") == 'on'
+        name = strip_tags(request.POST.get("name"))  # strip HTML tags!
+        price = request.POST.get("price")
+        description = strip_tags(request.POST.get("description"))  # strip HTML tags!
+        category = request.POST.get("category")
+        thumbnail = strip_tags(request.POST.get("thumbnail"))  # strip HTML tags!
+        is_featured = request.POST.get("is_featured") == 'on'  # checkbox handling
         user = request.user
 
         # Validate required fields
-        if not name:
-            return JsonResponse({'error': 'Product name is required'}, status=400)
-        
-        if not description:
-            return JsonResponse({'error': 'Product description is required'}, status=400)
-            
-        if not category:
-            return JsonResponse({'error': 'Product category is required'}, status=400)
+        if not name or not price or not description:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Name, price, and description are required fields.'
+            }, status=400)
 
-        # Validate and convert price
+        # Validate price is a number
         try:
-            price = float(price_str) if price_str else 0
-            if price < 0:
-                return JsonResponse({'error': 'Price cannot be negative'}, status=400)
+            price = float(price)
         except (ValueError, TypeError):
-            return JsonResponse({'error': 'Invalid price format'}, status=400)
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Price must be a valid number.'
+            }, status=400)
 
-        # Validate category
-        valid_categories = [choice[0] for choice in Product.CATEGORY_CHOICES]
-        if category not in valid_categories:
-            return JsonResponse({'error': 'Invalid category selected'}, status=400)
-
-        # Create and save the product
         new_product = Product(
             name=name, 
             price=price,
             description=description,
             category=category,
-            thumbnail=thumbnail or '',
+            thumbnail=thumbnail,
             is_featured=is_featured,
             user=user
         )
         new_product.save()
 
-        return HttpResponse(b"CREATED", status=201)
-        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Product created successfully!',
+            'product_id': str(new_product.id)
+        }, status=201)
+
     except Exception as e:
-        # Log the error for debugging
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error in add_product_entry_ajax: {str(e)}")
-        
-        return JsonResponse({'error': 'Internal server error'}, status=500)
+        return JsonResponse({
+            'status': 'error',
+            'message': f'An error occurred: {str(e)}'
+        }, status=500)
 
 @csrf_exempt
 @require_POST
@@ -262,9 +255,26 @@ def edit_product_entry_ajax(request, id):
     try:
         product = get_object_or_404(Product, pk=id, user=request.user)
         
+        # Validate required fields
         name = strip_tags(request.POST.get("name"))  # strip HTML tags!
         price = request.POST.get("price")
         description = strip_tags(request.POST.get("description"))  # strip HTML tags!
+        
+        if not name or not price or not description:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Name, price, and description are required fields.'
+            }, status=400)
+
+        # Validate price is a number
+        try:
+            price = float(price)
+        except (ValueError, TypeError):
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Price must be a valid number.'
+            }, status=400)
+
         category = request.POST.get("category")
         thumbnail = strip_tags(request.POST.get("thumbnail"))  # strip HTML tags!
         is_featured = request.POST.get("is_featured") == 'on'  # checkbox handling
@@ -277,6 +287,19 @@ def edit_product_entry_ajax(request, id):
         product.is_featured = is_featured
         product.save()
 
-        return HttpResponse(b"UPDATED", status=200)
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Product updated successfully!',
+            'product_id': str(product.id)
+        }, status=200)
+        
     except Product.DoesNotExist:
-        return HttpResponse(b"NOT FOUND", status=404)
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Product not found or you do not have permission to edit it.'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'An error occurred: {str(e)}'
+        }, status=500)
